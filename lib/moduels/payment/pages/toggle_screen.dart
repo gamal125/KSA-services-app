@@ -30,7 +30,8 @@ class ToggleScreen extends StatelessWidget {
               text: "Success get ref code ",
               color: Colors.amber.shade400,
             );
-            navigateAndFinish(context, const ReferenceScreen());
+            Navigator.pushReplacementNamed(context, ReferenceScreen.routeName);
+
           } else if (state is PaymentRefCodeErrorStates) {
             isLoading = false;
 
@@ -93,7 +94,8 @@ class ToggleScreen extends StatelessWidget {
                   Expanded(
                     child: InkWell(
                       onTap: () {
-                        navigateAndFinish(context, const VisaScreen());
+                        Navigator.pushReplacementNamed(context, VisaScreen.routeName);
+
                       },
                       child: Container(
                         width: double.infinity,

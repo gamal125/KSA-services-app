@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:services/components/components.dart';
+import 'package:services/core/constance/constants.dart';
 
 import 'package:services/cubit/AppCubit.dart';
 import 'package:services/layout/todo_layout.dart';
 import 'package:services/model/UserModel.dart';
 import '../../cubit/states.dart';
 import '../../model/message_model.dart';
+import '../payment/pages/auth_screen.dart';
 
 class MessageScreen extends StatefulWidget {
-  MessageScreen({super.key, required this.R_userdata});
+  static const String routeName = 'MessageScreen';
+
+  MessageScreen({super.key,  required this.R_userdata});
 
   final UserModel R_userdata;
 
@@ -231,13 +236,14 @@ class _MessageScreenState extends State<MessageScreen> {
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Container(
                                 decoration: BoxDecoration(
+                                    color: KPrimaryColor,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(20))),
                                 height: 40,
                                 width: 45,
                                 child: MaterialButton(
                                   minWidth: 1,
-                                  color: Colors.blue,
+                                  color: KPrimaryColor,
                                   onPressed: () {
                                     c.sendmessage(
                                         text: textController.text,
@@ -278,6 +284,8 @@ class _MessageScreenState extends State<MessageScreen> {
     );
   }
 
+  bool isLoading = false;
+
   Widget buildmessage(messageModel model) => model.text == '###payment###'
       ? Align(
           alignment: AlignmentDirectional.centerStart,
@@ -299,12 +307,30 @@ class _MessageScreenState extends State<MessageScreen> {
               const SizedBox(
                 width: 10,
               ),
-              MaterialButton(
-                onPressed: () {
-
+              BlocConsumer<AppCubit, AppStates>(
+                listener: (context, state) {
+                  if (state is PaymentAuthLoadingStates) {
+                    isLoading = true;
+                  } else if (state is PaymentAuthSuccessStates) {
+                    isLoading = false;
+                    Navigator.pushNamed(context, AuthScreen.routeName);
+                  } else if (state is PaymentAuthErrorStates) {
+                    isLoading = false;
+                  }
                 },
-                color: Colors.green,
-                child: const Text('إدفع'),
+                builder: (context, state) {
+                  var cubit = AppCubit.get(context);
+
+                  return Center(
+                    child: MaterialButton(
+                      onPressed: () {
+                        cubit.getAuthToken();
+                      },
+                      color: Colors.green,
+                      child: const Text('إدفع'),
+                    ),
+                  );
+                },
               ),
             ],
           ))

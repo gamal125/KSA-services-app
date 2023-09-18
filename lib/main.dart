@@ -11,9 +11,12 @@ import 'package:splash_screen_view/SplashScreenView.dart';
 import 'core/constance/constants.dart';
 import 'cubit/AppCubit.dart';
 import 'login/cubit/maincubit.dart';
+import 'moduels/chatsScreens/messageScreen.dart';
 import 'moduels/payment/pages/accept_button_screen.dart';
 import 'moduels/payment/pages/auth_screen.dart';
+import 'moduels/payment/pages/reference_screen.dart';
 import 'moduels/payment/pages/toggle_screen.dart';
+import 'moduels/payment/pages/visa_screen.dart';
 
 main() async {
   Widget widget;
@@ -67,7 +70,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         theme: ThemeData(
-            appBarTheme: AppBarTheme(
+            appBarTheme: const AppBarTheme(
               backgroundColor: KPrimaryColor,
             ),
             fontFamily: 'jannah'),
@@ -77,6 +80,8 @@ class MyApp extends StatelessWidget {
           AuthScreen.routeName: (context) => AuthScreen(),
           AcceptButtonScreen.routeName: (context) => AcceptButtonScreen(),
           ToggleScreen.routeName: (context) => ToggleScreen(),
+          ReferenceScreen.routeName: (context) => ReferenceScreen(),
+          VisaScreen.routeName: (context) => VisaScreen(),
         },
       ),
     );

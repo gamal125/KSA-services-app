@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:services/core/constance/constants.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../core/component_screen.dart';
@@ -9,6 +10,8 @@ import '../../../core/constance/Apicontest.dart';
 import 'auth_screen.dart';
 
 class VisaScreen extends StatefulWidget {
+  static const String routeName = 'VisaScreen';
+
   const VisaScreen({Key? key}) : super(key: key);
 
   @override
@@ -31,16 +34,23 @@ class _VisaScreenState extends State<VisaScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(actions: [
-          IconButton(
-            onPressed: () {
-              paymentExitApp(context);
-            },
-            icon: const Icon(
-              Icons.exit_to_app,
+        appBar: AppBar(
+            leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back_ios),
             ),
-          )
-        ]),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  paymentExitApp(context);
+                },
+                icon: const Icon(
+                  Icons.exit_to_app,
+                ),
+              )
+            ]),
         body: WebView(
           initialUrl: ApiContest.visaUrl,
           javascriptMode: JavascriptMode.unrestricted,
@@ -92,7 +102,7 @@ class _VisaScreenState extends State<VisaScreen> {
       builder: (_) {
         return AlertDialog(
           title: const Text(
-            'Are you sure completed the pay',
+            'Are you sure you completed the pay',
             style: TextStyle(
               fontSize: 14.0,
             ),
@@ -101,18 +111,18 @@ class _VisaScreenState extends State<VisaScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                navigateAndFinish(
-                  context,
-                  AuthScreen(),
-                );
+                Navigator.pop(context);
               },
-              child: const Text('Yes'),
+              child: const Text(
+                'Yes',
+                style: TextStyle(color: KPrimaryColor),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('No'),
+              child: const Text('No', style: TextStyle(color: KPrimaryColor)),
             ),
           ],
         );

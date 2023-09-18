@@ -6,6 +6,8 @@ import '../../../core/constance/constants.dart';
 import 'auth_screen.dart';
 
 class ReferenceScreen extends StatelessWidget {
+  static const String routeName = 'ReferenceScreen';
+
   const ReferenceScreen({Key? key}) : super(key: key);
 
   @override
@@ -14,16 +16,16 @@ class ReferenceScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Reference Code'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              paymentExitApp(context);
-            },
-            icon: const Icon(
-              Icons.exit_to_app,
-            ),
-          )
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       paymentExitApp(context);
+        //     },
+        //     icon: const Icon(
+        //       Icons.exit_to_app,
+        //     ),
+        //   )
+        // ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -67,37 +69,37 @@ class ReferenceScreen extends StatelessWidget {
     );
   }
 
-  void paymentExitApp(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          title: const Text(
-            'Are you sure not completed the pay',
-            style: TextStyle(
-              fontSize: 14.0,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                navigateAndFinish(
-                  context,
-                  AuthScreen(),
-                );
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('No'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void paymentExitApp(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (_) {
+  //       return AlertDialog(
+  //         title: const Text(
+  //           'Are you sure not completed the pay',
+  //           style: TextStyle(
+  //             fontSize: 14.0,
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               navigateAndFinish(
+  //                 context,
+  //                 AuthScreen(),
+  //               );
+  //             },
+  //             child: const Text('Yes'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text('No'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }

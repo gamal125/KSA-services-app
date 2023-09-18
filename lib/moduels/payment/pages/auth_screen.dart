@@ -26,6 +26,8 @@ class AuthScreen extends StatelessWidget {
       create: (context) => AppCubit()..getAuthToken(),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton( onPressed: () { Navigator.pop(context) ;}, icon: Icon(Icons.arrow_back_ios),),
+
           title: const Text(
             "Payment Integration",
             style: TextStyle(color: Colors.white),
@@ -41,12 +43,14 @@ class AuthScreen extends StatelessWidget {
             } else if (state is PaymentRequestTokenSuccessStates) {
               isLoading = false;
 
-              showSnackBar(
-                context: context,
-                text: 'Success get final token',
-                color: Colors.green,
-              );
-              navigateTo(context, ToggleScreen());
+              // showSnackBar(
+              //   context: context,
+              //   text: 'Success get final token',
+              //   color: Colors.green,
+              // );
+              Navigator.pushReplacementNamed(context, ToggleScreen.routeName);
+
+             // navigateTo(context, ToggleScreen());
             } else if (state is PaymentRequestTokenErrorStates) {
               isLoading = false;
             }
