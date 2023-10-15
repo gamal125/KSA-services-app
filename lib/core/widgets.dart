@@ -28,8 +28,43 @@ Widget defaultButton({
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius), color: KPrimaryColor),
     );
-
-Widget defaultFormField(
+    Widget defaultFormField(
+{required TextEditingController controller,
+required TextInputType type,
+void Function(String)? onSubmit,
+required Function onChange,
+required String? Function(String?)? validator,
+required String label,
+required IconData prefix,
+IconData? suffix,
+bool isPassword = false,
+Color? cursorColor}) =>
+TextFormField(
+controller: controller,
+keyboardType: type,
+onFieldSubmitted: onSubmit,
+onChanged: onChange(),
+validator: validator,
+cursorColor: cursorColor,
+decoration: InputDecoration(
+suffixIconColor: KPrimaryColor,
+labelText: label,
+prefixIcon: Icon(
+prefix,
+color: KPrimaryColor,
+),
+suffixIcon: suffix != null ? Icon(suffix) : null,
+border: OutlineInputBorder(
+borderSide: BorderSide(color: KPrimaryColor, width: 1),
+),
+enabledBorder: OutlineInputBorder(
+borderSide: BorderSide(color: KPrimaryColor, width: 1)),
+focusedBorder: OutlineInputBorder(
+borderSide: BorderSide(color: KPrimaryColor, width: 1)),
+labelStyle: TextStyle(color: KPrimaryColor),
+),
+);
+Widget defaultFormField2(
         {required TextEditingController controller,
         required TextInputType type,
         void Function(String)? onSubmit,
@@ -41,6 +76,7 @@ Widget defaultFormField(
         bool isPassword = false,
         Color? cursorColor}) =>
     TextFormField(
+enabled: false,
       controller: controller,
       keyboardType: type,
       onFieldSubmitted: onSubmit,

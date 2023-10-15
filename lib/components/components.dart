@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:services/core/constance/constants.dart';
 
 
 Widget defaultTextFormField({
@@ -9,6 +10,7 @@ Widget defaultTextFormField({
   required TextInputType keyboardType,
   required String? Function(String?) validate,
   required String label,
+  required Color tcolor,
 
   String? hint,
 
@@ -24,7 +26,7 @@ Widget defaultTextFormField({
 }) =>
     TextFormField(
 
-
+style: TextStyle(color: tcolor),
       maxLines: 1,
       minLines: 1,
       controller: controller,
@@ -39,7 +41,7 @@ Widget defaultTextFormField({
       decoration: InputDecoration(
         prefixIcon: Icon(
           prefix,
-          color: Colors.cyan,
+          color: KPrimaryColor,
         ),
         suffixIcon: suffix != null
             ? IconButton(
@@ -48,7 +50,7 @@ Widget defaultTextFormField({
           },
           icon: Icon(
             suffix,
-            color: Colors.cyan,
+            color: KPrimaryColor,
           ),
         )
             : null,
@@ -61,7 +63,7 @@ Widget defaultTextFormField({
             Radius.circular(20.0),
           ),
           borderSide: BorderSide(
-            color: Colors.cyan,
+            color:KPrimaryColor,
           ),
         ),
         focusedErrorBorder: const OutlineInputBorder(
@@ -75,11 +77,11 @@ Widget defaultTextFormField({
         labelText: label,
         labelStyle: const TextStyle(
 
-          color: Colors.black,
+          color: KPrimaryColor,
         ),
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        focusColor: Colors.black,
+        focusColor: KPrimaryColor,
         disabledBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(20.0),
@@ -212,7 +214,7 @@ Widget defaultTextFormField2({
 Widget defaultMaterialButton({
   required Function function,
   required String text,
-  Color color=Colors.cyan,
+  Color color=KPrimaryColor,
   double width = 200,
   double height = 60.0,
   double radius = 15.0,
@@ -226,7 +228,7 @@ Widget defaultMaterialButton({
         borderRadius: BorderRadius.circular(
           radius,
         ),
-        color: color.withOpacity(0.5),
+        color: color,
         //  color: background,
       ),
       child: MaterialButton(
@@ -235,7 +237,7 @@ Widget defaultMaterialButton({
         },
         child: Text(
           isUpperCase?text.toUpperCase():text,
-          textAlign:TextAlign.start,
+          textAlign:TextAlign.center,
 
 
           style: const TextStyle(
@@ -255,7 +257,7 @@ Widget defaultTextButton({
       onPressed: () {
         function();
       },
-      child: Text(text,style: TextStyle(color: Colors.indigo),),
+      child: Text(text,style: TextStyle(color: KPrimaryColor),),
     );
 
 Widget myDivider() => Container(

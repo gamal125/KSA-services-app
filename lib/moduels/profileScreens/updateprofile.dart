@@ -1,7 +1,11 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import '../../Applocalizition.dart';
 import '../../components/components.dart';
+import '../../core/constance/constants.dart';
 import '../../cubit/AppCubit.dart';
 import '../../cubit/states.dart';
 import '../../layout/todo_layout.dart';
@@ -14,41 +18,41 @@ class UpdateProfileScreen extends StatelessWidget {
   final  formKey = GlobalKey<FormState>();
   final imageController = TextEditingController();
   final nameController = TextEditingController();
-  final phoneController = TextEditingController();
+  var phoneController = TextEditingController();
 
   UpdateProfileScreen({super.key});
   @override
   Widget build(BuildContext context) {
-
+    Size screenSize = MediaQuery.of(context).size;
 
     var c= AppCubit.get(context);
     imageController.text=c.userdata!.image!;
     nameController.text=c.userdata!.name!;
-    phoneController.text=c.userdata!.phone!;
+    c.userdata!.phone!=''?phoneController.text=c.userdata!.phone!:null;
 
 
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
         if (state is ImageSuccessStates) {
           AppCubit.get(context).getUser(c.ud);
-          AppCubit.get(context).currentIndex=2;
+          AppCubit.get(context).changeIndex(2);
           navigateAndFinish(context, Home_Layout());
 
-        };
+        }
         if (state is UpdateProductSuccessStates) {
           AppCubit.get(context).getUser(c.ud);
-          AppCubit.get(context).currentIndex=2;
+          AppCubit.get(context).changeIndex(2);
           navigateAndFinish(context, Home_Layout());
 
-        };
+        }
 
       },
       builder: (context, state) {
         var imageo=c.userdata!.image!;
         return Scaffold(
-          backgroundColor: Colors.white,
 
-          appBar: AppBar(backgroundColor: Colors.white,iconTheme: IconThemeData(color: Colors.blue),elevation: 0,),
+
+          appBar: AppBar( ),
           body: GestureDetector(
             onTap: (){
               FocusManager.instance.primaryFocus?.unfocus();
@@ -62,7 +66,7 @@ class UpdateProfileScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 10,
                         ),
                         InkWell(
@@ -77,7 +81,7 @@ class UpdateProfileScreen extends StatelessWidget {
                             BoxDecoration(image: DecorationImage(image: FileImage(c.PickedFile2!)))
                                 : BoxDecoration(image:
                             imageo==''?
-                            DecorationImage(image: NetworkImage(
+                            const DecorationImage(image: NetworkImage(
                                 'https://www.leedsandyorkpft.nhs.uk/advice-support/wp-content/uploads/sites/3/2021/06/pngtree-image-upload-icon-photo-upload-icon-png-image_2047546.jpg')):
                             DecorationImage(image: NetworkImage(imageo) )
 
@@ -99,7 +103,7 @@ class UpdateProfileScreen extends StatelessWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 20.0,right: 20,left: 20,bottom:10),
                                   child: Column(children: [
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 20,
                                     ),
                                     defaultTextFormField(
@@ -111,15 +115,15 @@ class UpdateProfileScreen extends StatelessWidget {
                                       prefix: Icons.drive_file_rename_outline_sharp,
                                       validate: (String? value) {
                                         if (value!.isEmpty) {
-                                          return 'Please enter name ';
+                                          return AppLocalizations.of(context)!.translate('username');
                                         }
                                         return null;
                                       },
-                                      label: 'الاسم',
-                                      hint: 'Enter your name',
+                                      label: AppLocalizations.of(context)!.translate('username'),
+                                      hint: AppLocalizations.of(context)!.translate('username'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
                                     ),
 
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 20,
                                     ),
 
@@ -133,16 +137,16 @@ class UpdateProfileScreen extends StatelessWidget {
                                       prefix: Icons.phone,
                                       validate: (String? value) {
                                         if (value!.isEmpty) {
-                                          return 'Please enter phone';
+                                          return AppLocalizations.of(context)!.translate('phone');
                                         }
                                         return null;
                                       },
-                                      label: 'رقم الهاتف',
-                                      hint: 'Enter phone',
+                                      label: AppLocalizations.of(context)!.translate('phone'),
+                                      hint: AppLocalizations.of(context)!.translate('phone'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
                                     ),
 
 
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 20,
                                     ),
 
@@ -161,18 +165,24 @@ class UpdateProfileScreen extends StatelessWidget {
                                               AppCubit.get(context).updateProfile(
                                                 name: nameController.text,
                                                 phone: phoneController.text,
-                                                email: AppCubit.get(context).userdata!.email!, image: c.userdata!.image!,
+                                                email: AppCubit.get(context).userdata!.email!, image: c.userdata!.image!, user: c.userdata!.user,
 
                                               );
                                             }
 
                                           }
 
-                                        }, text: 'نشر', radius: 20, color: Colors.indigo,),
+                                        }, text: AppLocalizations.of(context)!.translate('save'), radius: 20, color: KPrimaryColor,),
                                       ),
-                                      fallback: (context)=>const Center(child: CircularProgressIndicator(),),),
+                                      fallback: (context)=>
+                                          Center(
+                                              child: LoadingAnimationWidget.inkDrop(
+                                                color: KPrimaryColor.withOpacity(.8),
+                                                size: screenSize.width / 12,
+                                              )) ,
+                                    ),
 
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 20,
                                     ),
 
@@ -182,15 +192,7 @@ class UpdateProfileScreen extends StatelessWidget {
 
                               ),
 
-                              Padding(
-                                padding: const EdgeInsets.only(top: 18.0),
-                                child: Container(
-                                  height: 50,
-                                  width: 170,
-                                  decoration: BoxDecoration(
 
-                                    image:DecorationImage(image: AssetImage('assets/images/logo.png'),fit: BoxFit.scaleDown),),),
-                              ),
                             ],
                           ),
                         ),

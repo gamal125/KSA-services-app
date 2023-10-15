@@ -1,64 +1,69 @@
 import 'dart:math';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:services/components/components.dart';
 import 'package:services/model/UserModel.dart';
+import '../../Applocalizition.dart';
 import '../../core/constance/constants.dart';
 import '../../cubit/AppCubit.dart';
 import '../../cubit/states.dart';
 import '../../model/servicemodel.dart';
-import '../../shared/local/cache_helper.dart';
 import '../chatsScreens/messageScreen.dart';
 
 class ServicesScreen extends StatefulWidget {
-  const ServicesScreen({super.key});
-
+    ServicesScreen({super.key});
+   String price='';
   @override
   State<ServicesScreen> createState() => _ServicesScreenState();
 }
-
 class _ServicesScreenState extends State<ServicesScreen> {
   List<ServiceModel> list = [];
   @override
   void dispose() {
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
-    AppCubit.get(context).getService();
-
+    list=AppCubit.get(context).serviceList;
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
+        if (state is GetServiceLoadingState) {
+
+        }
         if (state is GetServiceSuccessState) {
+
+          list.toSet().toList();
           list = AppCubit.get(context).serviceList;
         }
         if (state is GetAllUsersSuccessStates) {
           if (AppCubit.get(context).onlineUsers.isNotEmpty) {
+
             AppCubit.get(context).getmessages(
                 R_uId: AppCubit.get(context)
                     .onlineUsers[getRandomNumber(
                         AppCubit.get(context).onlineUsers.length)]
-                    .uId!);
+                    .uId!, );
           } else if (AppCubit.get(context).onlineUsers2.isNotEmpty) {
             AppCubit.get(context).getmessages(
                 R_uId: AppCubit.get(context)
                     .onlineUsers2[getRandomNumber(
                         AppCubit.get(context).onlineUsers2.length)]
-                    .uId!);
+                    .uId!, );
             showToast(
-                text: 'كل الموظفون  الان برجاء الانتظار',
+                text: AppLocalizations.of(context)!.translate('cond1'),
                 state: ToastStates.error);
-          } else {
+          } else if(AppCubit.get(context).onlineUsers3.isNotEmpty) {
+
             AppCubit.get(context).getmessages(
-                R_uId: AppCubit.get(context)
-                    .onlineUsers3[getRandomNumber(
-                        AppCubit.get(context).onlineUsers3.length)]
-                    .uId!);
+                R_uId: AppCubit.get(context).onlineUsers3[getRandomNumber(AppCubit.get(context).onlineUsers3.length)]
+                    .uId!, );
             showToast(
-                text: 'كل الموظفون مشغلون الان برجاء المحاوله لاحقا',
+                text: AppLocalizations.of(context)!.translate('cond1'),
+                state: ToastStates.error);
+          }else{
+            Navigator.pop(context);
+            showToast(
+                text: AppLocalizations.of(context)!.translate('cond2'),
                 state: ToastStates.error);
           }
         }
@@ -70,14 +75,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
               model = element;
             }
           });
+         if( model != null ){
+           print(widget.price);
 
-          model != null
-              ? navigateTo(
-                  context,
-                  MessageScreen(
-                    R_userdata: model!,
-                  ))
-              : null;
+           navigateTo(context, MessageScreen(R_userdata: model!,));}
+
         }
       },
       builder: (context, state) {
@@ -86,11 +88,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
           appBar: AppBar(
             title: Center(
                 child: Text(
-              "خدمات عامه و إلكترونية",
+                  AppLocalizations.of(context)!.translate('services'),
               style:
                   TextStyle(color: KPrimaryColor, fontWeight: FontWeight.bold),
             )),
-            backgroundColor: Colors.white,
+
           ),
           body: SafeArea(
               child: SingleChildScrollView(
@@ -105,7 +107,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 mainAxisSpacing: 15,
                 childAspectRatio: 1 / 1.2,
                 children: List.generate(
-                    list.length, (index) => ServiceItems(list[index], context)),
+                    list.length, (index) => ServiceItems(list[index],context)),
               ),
             ),
           )),
@@ -139,21 +141,21 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  Widget ServiceItems(ServiceModel model, context) => InkWell(
+  Widget ServiceItems(ServiceModel model, context) =>InkWell(
         onTap: () {
-          showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
+          AppCubit.get(context).userdata!.user?   showDialog(context: context, builder: (context) =>
+                  AlertDialog(
                     clipBehavior: Clip.antiAliasWithSaveLayer,
                     elevation: 24.0,
-                    title: const Center(
+                    title:  Center(
                         child: Text(
-                      'اختر النوع',
+                          AppLocalizations.of(context)!.translate('select type'),
                       textAlign: TextAlign.right,
                     )),
-                    content: const Text(
-                      'هل تريد التحدث مع ذكر ام انثي؟',
-                      style: TextStyle(fontSize: 12),
+                    content:  Text(
+                      AppLocalizations.of(context)!.translate('select type2')
+                      ,
+                      style: const TextStyle(fontSize: 12),
                       textAlign: TextAlign.right,
                     ),
                     actions: [
@@ -162,18 +164,24 @@ class _ServicesScreenState extends State<ServicesScreen> {
                         children: [
                           TextButton(
                               onPressed: () {
-                                AppCubit.get(context).getusers(male: false);
+                                setState(() {
+                                  widget.price=model.price!;
+                                });
+                                AppCubit.get(context).getusers(male: false,);
                               },
-                              child: Text('انثي')),
+                              child: Text( AppLocalizations.of(context)!.translate('female'))),
                           TextButton(
                               onPressed: () {
-                                AppCubit.get(context).getusers(male: true);
+                                setState(() {
+                                  widget.price=model.price!;
+                                });
+                                AppCubit.get(context).getusers(male: true,);
                               },
-                              child: Text('ذكر')),
+                              child: Text(AppLocalizations.of(context)!.translate('male'))),
                         ],
                       ),
                     ],
-                  ));
+                  )):null;
         },
         child: Container(
           decoration: BoxDecoration(
@@ -208,8 +216,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize:
-                                  MediaQuery.of(context).size.width * 0.04,
-                              fontWeight: FontWeight.bold,
+                                  MediaQuery.of(context).size.width * 0.03,
+                              fontWeight: FontWeight.normal,
                               fontFamily: 'Dubai',
                               color: Colors.white,
                             ),
@@ -227,14 +235,28 @@ class _ServicesScreenState extends State<ServicesScreen> {
                             )),
                         width: double.infinity,
                         child: Center(
-                            child: Text(
-                          '${model.price!} \$',
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text(
+                                  'ريال',
+                                  style: TextStyle(
+                                    fontSize: MediaQuery.of(context).size.width * 0.03,
+                                    fontWeight: FontWeight.normal,
+                                    fontFamily: 'Dubai',
+                                  ),
+                                ),
+                                Text(
+                          '${model.price!}',
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.05,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Dubai',
+                                fontSize: MediaQuery.of(context).size.width * 0.03,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Dubai',
                           ),
-                        )))
+                        ),
+                              ],
+                            )
+                        ))
                   ],
                 ),
               ),

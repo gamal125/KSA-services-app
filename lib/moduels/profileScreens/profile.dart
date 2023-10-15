@@ -1,16 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:services/moduels/profileScreens/WalletScreen.dart';
 import 'package:services/moduels/profileScreens/updateprofile.dart';
+import '../../Applocalizition.dart';
 import '../../components/components.dart';
 import '../../core/constance/constants.dart';
 import '../../cubit/AppCubit.dart';
 import '../../cubit/states.dart';
 import '../../login/login_screen.dart';
 import '../../shared/local/cache_helper.dart';
+import '../chatsScreens/complaintMessageScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -20,18 +23,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _switchValue = false;
+
   var isChecked = false;
 
   @override
   Widget build(BuildContext context) {
     var cubit = AppCubit.get(context);
 
+    Size screenSize = MediaQuery.of(context).size;
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
-        if (state is GetOneUsersSuccessStates) {
-          _switchValue = cubit.userdata!.state;
-        }
+ if (state is GetUserWalletSuccessStates){
+   navigateTo(context, WalletScreen(model:state.model));
+ }
         if (state is LogoutSuccessState) {
           String uid = CacheHelper.getData(key: 'uId');
           FirebaseFirestore.instance
@@ -50,18 +54,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 AppCubit.get(context).userdata == null
             ? Scaffold(
                 appBar: AppBar(
-                  backgroundColor: KPrimaryColor,
                   elevation: 0,
-                  systemOverlayStyle: SystemUiOverlayStyle(
-                      statusBarColor: Colors.white,
-                      statusBarIconBrightness: Brightness.dark),
                 ),
                 body: Column(
                   children: [
                     Expanded(
                       child: Container(
                         width: double.infinity,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: KPrimaryColor,
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -90,16 +90,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ]),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10.0),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 10.0),
                               child: Text(
                                 'new user',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10.0),
+                            const  Padding(
+                              padding: EdgeInsets.only(top: 10.0),
                               child: Text(
                                 '******gmail.com',
                                 style: TextStyle(
@@ -107,9 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     fontSize: 18),
                               ),
                             ),
-                            Padding(
+                            const  Padding(
                               padding:
-                                  const EdgeInsets.only(top: 10.0, bottom: 14),
+                                  EdgeInsets.only(top: 10.0, bottom: 14),
                               child: Text(
                                 '************',
                                 style: TextStyle(
@@ -137,16 +137,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             navigateTo(context, LoginScreen());
                                           },
                                           child: Text(
-                                            'تسجيل دخول',
-                                            style: TextStyle(
+                                            AppLocalizations.of(context)!.translate('login'),
+                                            style: const TextStyle(
                                                 fontWeight: FontWeight.normal,
                                                 fontSize: 18,
                                                 color: Colors.black),
                                           ),
                                         ),
-                                        fallback: (context) => const Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
+                                        fallback: (context) => Center(
+                                            child: LoadingAnimationWidget.inkDrop(
+                                              color: KPrimaryColor.withOpacity(.8),
+                                              size: screenSize.width / 12,
+                                            )) ,
                                       ),
                                       Padding(
                                         padding:
@@ -159,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   BorderRadius.circular(10),
                                               color:
                                                   Colors.grey.withOpacity(0.2)),
-                                          child: Icon(Icons.logout_rounded,
+                                          child:const Icon(Icons.logout_rounded,
                                               color: Colors.black),
                                         ),
                                       ),
@@ -202,9 +204,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : Scaffold(
                 appBar: AppBar(
                   elevation: 0,
-                  systemOverlayStyle: SystemUiOverlayStyle(
-                      statusBarColor: Colors.white,
-                      statusBarIconBrightness: Brightness.dark),
+                  actions: [
+               IconButton(onPressed: (){AppCubit.get(context).changemode();}, icon: Icon(Icons.brightness_medium,color: AppCubit.get(context).isDark?Colors.white:Colors.black,)),
+                   Spacer(),
+                   CacheHelper.getData(key: 'uId')!='8DxVS7sTApPRE3oD1SZvLEjHXNg1' ?TextButton(
+                      onPressed: () {
+
+                        navigateTo(context, const ComplaintMessageScreen(R_id: '8DxVS7sTApPRE3oD1SZvLEjHXNg1',));
+                      },
+                      child:  Row(
+                        children: [
+
+                          Text(AppLocalizations.of(context)!.translate('Complaints'),style: const TextStyle(fontSize: 16,color: Colors.red),),
+                          const Icon(Icons.list_alt,color: Colors.red,),
+                        ],
+                      )
+                  ):const Text(''),],
+
                 ),
                 body: ConditionalBuilder(
                   builder: (context) => Column(
@@ -212,13 +228,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Expanded(
                         child: Container(
                           width: double.infinity,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
                                 KPrimaryColor,
-                                Colors.white, // Second color (bottom half)
+                                Colors.transparent // Second color (bottom half)
                               ],
                               stops: [
                                 0.2,
@@ -239,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       .userdata!
                                                       .image ==
                                                   null
-                                          ? CircleAvatar(
+                                          ? const CircleAvatar(
                                               radius: 67,
                                               backgroundColor: Colors.white,
                                               child: CircleAvatar(
@@ -251,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             )
                                           : CircleAvatar(
                                               backgroundImage: NetworkImage(
-                                                  '${AppCubit.get(context).userdata!.image!}'),
+                                                  AppCubit.get(context).userdata!.image!),
                                               radius: 60,
                                             ),
                                       Container(
@@ -281,8 +297,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 10.0),
                                 child: Text(
-                                  '${AppCubit.get(context).userdata!.name!}',
-                                  style: TextStyle(
+                                  AppCubit.get(context).userdata!.name!,
+                                  style:  TextStyle(
+                                      color: AppCubit.get(context).isDark?Colors.white:Colors.black,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18),
                                 ),
@@ -290,8 +307,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 10.0),
                                 child: Text(
-                                  '${AppCubit.get(context).userdata!.email!}',
-                                  style: TextStyle(
+                                  AppCubit.get(context).userdata!.email!,
+                                  style:  TextStyle(
+                                      color: AppCubit.get(context).isDark?Colors.white:Colors.black,
                                       fontWeight: FontWeight.normal,
                                       fontSize: 18),
                                 ),
@@ -300,55 +318,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 padding: const EdgeInsets.only(
                                     top: 10.0, bottom: 14),
                                 child: Text(
-                                  '${AppCubit.get(context).userdata!.phone!}',
-                                  style: TextStyle(
+                                  AppCubit.get(context).userdata!.phone!,
+                                  style:  TextStyle(
+                                    color: AppCubit.get(context).isDark?Colors.white:Colors.black,
                                       fontWeight: FontWeight.normal,
                                       fontSize: 18),
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  _switchValue
-                                      ? Text(
-                                          'online',
-                                          style: TextStyle(
-                                              fontSize: 22, color: Colors.blue),
-                                        )
-                                      : Text(
-                                          'offline',
-                                          style: TextStyle(
-                                              fontSize: 22, color: Colors.grey),
-                                        ),
-                                  SizedBox(
-                                    width: 20,
-                                  ),
-                                  Switch(
-                                    value: _switchValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _switchValue = value;
-                                        FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(FirebaseAuth
-                                                .instance.currentUser!.uid)
-                                            .update({'state': _switchValue});
-                                      });
-                                    },
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
-                              ),
+                             const SizedBox(height: 30,),
                               Padding(
                                 padding: const EdgeInsets.only(
                                     top: 12.0, right: 20, left: 20, bottom: 10),
                                 child: Container(
-                                    height: 43,
+                                    height: 50,
                                     width: double.infinity,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
@@ -361,14 +343,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           //state is! LogOutLoadingState,
                                           builder: (context) => TextButton(
                                             onPressed: () {
-                                              AppCubit.get(context).signout();
+                                              AppCubit.get(context).getWalletUser(CacheHelper.getData(key: 'uId'));
                                             },
-                                            child: Text(
-                                              'تسجيل الخروج',
-                                              style: TextStyle(
+                                            child:  Text(
+                                              AppLocalizations.of(context)!.translate('wallet'),
+                                              style:  TextStyle(
                                                   fontWeight: FontWeight.normal,
-                                                  fontSize: 18,
-                                                  color: Colors.black),
+                                                  fontSize: 16,
+                                                color: AppCubit.get(context).isDark?Colors.white:Colors.black,),
                                             ),
                                           ),
                                           fallback: (context) => const Center(
@@ -386,37 +368,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     BorderRadius.circular(10),
                                                 color: Colors.grey
                                                     .withOpacity(0.2)),
-                                            child: Icon(Icons.logout_rounded,
-                                                color: Colors.black),
+                                            child:  Icon(Icons.wallet,
+                                              color: AppCubit.get(context).isDark?Colors.white:Colors.black,),
                                           ),
                                         ),
                                       ],
-                                    )),
+                                    )
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 12.0, right: 20, left: 20, bottom: 10),
+                                child: Container(
+                                    height: 50,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        ConditionalBuilder(
+                                          condition: true,
+                                          //state is! LogOutLoadingState,
+                                          builder: (context) => TextButton(
+                                            onPressed: () {
+                                              AppCubit.get(context).signout();
+                                            },
+                                            child:  Text(
+                                              AppLocalizations.of(context)!.translate('logout'),
+                                              style:  TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                fontSize: 16,
+                                                color: AppCubit.get(context).isDark?Colors.white:Colors.black,),
+                                            ),
+                                          ),
+                                          fallback: (context) => const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.only(left: 8.0),
+                                          child: Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                BorderRadius.circular(10),
+                                                color: Colors.grey
+                                                    .withOpacity(0.2)),
+                                            child:  Icon(Icons.logout_rounded,
+                                              color: AppCubit.get(context).isDark?Colors.white:Colors.black,),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                ),
                               ),
 
-                              // Column(
-                              //   mainAxisAlignment: MainAxisAlignment.center,
-                              //   children: [
-                              //
-                              //     Padding(
-                              //         padding: const EdgeInsets.only(top: 40.0,bottom: 15),
-                              //
-                              //         child: ConditionalBuilder(
-                              //           condition: state is! LogOutLoadingState,
-                              //           builder: (context)=>TextButton(onPressed: () { NewsCubit.get(context).signout(); },
-                              //             child:Text('تسجيل الخروج',style: TextStyle(fontWeight: FontWeight.normal,fontSize: 18,color: Color.fromRGBO(34, 149, 255, 0.65)),),
-                              //           ),
-                              //           fallback: (context)=>const Center(child: CircularProgressIndicator(),),
-                              //         ) ),
-                              //     Container(
-                              //       height: 25,
-                              //       width: 170,
-                              //       decoration: BoxDecoration(
-                              //
-                              //         image:DecorationImage(image: AssetImage('assets/images/logo.png'),fit: BoxFit.scaleDown),),),
-                              //     Text('جميع الحقوق محفوظة',style: TextStyle(color: Colors.grey),)
-                              //   ],
-                              // )
                             ],
                           ),
                         ),
@@ -424,9 +434,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   condition: state is! GetUsersInitStates &&
-                      state is! AppChangeBottomNavBarState,
+                      state is! AppChangeBottomNavBarState && state is! GetUserswalletStates ,
                   fallback: (context) =>
-                      Center(child: CircularProgressIndicator()),
+                      Center(
+                          child: LoadingAnimationWidget.inkDrop(
+                            color: KPrimaryColor.withOpacity(.8),
+                            size: screenSize.width / 12,
+                          )) ,
                 ),
                 bottomNavigationBar: Container(
                   decoration: BoxDecoration(

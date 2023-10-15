@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:services/core/constance/constants.dart';
+import 'package:services/cubit/AppCubit.dart';
+import 'package:services/model/UserModel.dart';
+import 'package:services/moduels/chatsScreens/messageScreen.dart';
+import 'package:services/moduels/payment/pages/return_screen.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../core/component_screen.dart';
@@ -12,8 +15,8 @@ import 'auth_screen.dart';
 class VisaScreen extends StatefulWidget {
   static const String routeName = 'VisaScreen';
 
-  const VisaScreen({Key? key}) : super(key: key);
-
+   VisaScreen({Key? key,required this.model}) : super(key: key);
+    UserModel model;
   @override
   State<VisaScreen> createState() => _VisaScreenState();
 }
@@ -21,6 +24,28 @@ class VisaScreen extends StatefulWidget {
 class _VisaScreenState extends State<VisaScreen> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
+  String extractSuccessValueFromURL(String url) {
+    final uri = Uri.parse(url);
+    final queryParams = uri.queryParameters;
+    final successValue = queryParams['success'];
+
+    print("{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{object}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}");
+    print(successValue);
+
+    if (successValue == "true") {
+      Future.delayed(const Duration(seconds: 5), () {
+AppCubit.get(context).deletepayment(widget.model.uId!);
+AppCubit.get(context).sendmessage(text: 'تم الدفع بنجاح', R_uId: widget.model.uId!, datetime:  DateTime.now().toString(), price: '');
+navigateAndFinish(context, MessageScreen(R_userdata: widget.model,));
+      });
+    } else if (successValue == "false") {
+      Future.delayed(const Duration(seconds: 5), () {
+
+        navigateAndFinish(context, MessageScreen(R_userdata: widget.model,));
+      });
+    }
+    return successValue ?? '';
+  }
 
   @override
   void initState() {
@@ -34,23 +59,16 @@ class _VisaScreenState extends State<VisaScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back_ios),
+        appBar: AppBar(actions: [
+          IconButton(
+            onPressed: () {
+              paymentExitApp(context);
+            },
+            icon: const Icon(
+              Icons.exit_to_app,
             ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  paymentExitApp(context);
-                },
-                icon: const Icon(
-                  Icons.exit_to_app,
-                ),
-              )
-            ]),
+          )
+        ]),
         body: WebView(
           initialUrl: ApiContest.visaUrl,
           javascriptMode: JavascriptMode.unrestricted,
@@ -75,6 +93,10 @@ class _VisaScreenState extends State<VisaScreen> {
             print('Page started loading: $url');
           },
           onPageFinished: (String url) {
+            print(
+                "{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{object}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}");
+            extractSuccessValueFromURL(url);
+
             print('Page finished loading: $url');
           },
           gestureNavigationEnabled: true,
@@ -102,7 +124,7 @@ class _VisaScreenState extends State<VisaScreen> {
       builder: (_) {
         return AlertDialog(
           title: const Text(
-            'Are you sure you completed the pay',
+            'Are you sure completed the pay',
             style: TextStyle(
               fontSize: 14.0,
             ),
@@ -111,18 +133,18 @@ class _VisaScreenState extends State<VisaScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pop(context);
+                navigateAndFinish(
+                  context,
+                  AuthScreen( model: widget.model, price: '',),
+                );
               },
-              child: const Text(
-                'Yes',
-                style: TextStyle(color: KPrimaryColor),
-              ),
+              child: const Text('Yes'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('No', style: TextStyle(color: KPrimaryColor)),
+              child: const Text('No'),
             ),
           ],
         );

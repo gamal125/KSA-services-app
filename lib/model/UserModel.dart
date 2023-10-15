@@ -9,6 +9,8 @@ class UserModel{
    bool state=false;
    bool user=false;
    bool available=true;
+   int bonus=0;
+   int cash=0;
 
    UserModel({
      this.name,
@@ -20,6 +22,8 @@ class UserModel{
      required this.state,
      required this.user,
      required this.available,
+     required this.bonus,
+     required this.cash,
 
 
 });
@@ -34,6 +38,8 @@ class UserModel{
      available=json['available'];
      state=json['state'];
      user=json['user'];
+     bonus=json['bonus'];
+     cash=json['cash'];
 
 
 
@@ -50,6 +56,8 @@ class UserModel{
        'available':available,
        'state':state,
        'user':user,
+       'bonus':bonus,
+       'cash':cash,
 
 
 

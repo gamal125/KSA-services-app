@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:services/components/components.dart';
+import 'package:services/model/UserModel.dart';
 import 'package:services/moduels/payment/pages/toggle_screen.dart';
 
-import '../../../core/component_screen.dart';
 import '../../../core/constance/constants.dart';
 import '../../../core/widgets.dart';
 import '../../../cubit/AppCubit.dart';
 import '../../../cubit/states.dart';
 
 class AuthScreen extends StatelessWidget {
+  AuthScreen({required this.model,required this.price}  );
+  UserModel model;
+  String price;
   static const String routeName = 'AuthScreen';
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
@@ -22,6 +26,16 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var userdata=AppCubit.get(context).userdata;
+    List<String> nameParts = userdata!.name!.split(' ');
+
+    String firstName = nameParts[0];
+    String lastName = nameParts[1];
+    emailController.text=userdata.email!;
+    firstNameController.text=firstName;
+    lastNameController.text=lastName;
+    priceController.text=price;
+    phoneController.text=userdata.phone!;
     return BlocProvider(
       create: (context) => AppCubit()..getAuthToken(),
       child: Scaffold(
@@ -48,7 +62,7 @@ class AuthScreen extends StatelessWidget {
               //   text: 'Success get final token',
               //   color: Colors.green,
               // );
-              Navigator.pushReplacementNamed(context, ToggleScreen.routeName);
+              navigateTo(context, ToggleScreen(model: model));
 
              // navigateTo(context, ToggleScreen());
             } else if (state is PaymentRequestTokenErrorStates) {
@@ -168,7 +182,9 @@ class AuthScreen extends StatelessWidget {
                         SizedBox(
                           height: 10,
                         ),
+                        priceController.text==''?
                         defaultFormField(
+
                             cursorColor: Colors.black,
                             controller: priceController,
                             type: TextInputType.number,
@@ -180,7 +196,22 @@ class AuthScreen extends StatelessWidget {
                               return null;
                             },
                             label: 'Price',
-                            prefix: Icons.monetization_on_outlined),
+                            prefix: Icons.monetization_on_outlined):      defaultFormField2(
+
+                            cursorColor: Colors.black,
+                            controller: priceController,
+                            type: TextInputType.number,
+                            onChange: () {},
+                            validator: (String? text) {
+                              if (text!.isEmpty) {
+                                return 'Please Enter Price';
+                              }
+                              return null;
+                            },
+                            label: 'Price',
+                            prefix: Icons.monetization_on_outlined)
+
+                        ,
                         SizedBox(
                           height: 30,
                         ),

@@ -32,12 +32,17 @@ class LoginCubit extends Cubit<LoginState> {
         image: image,
         male: true,
         available: true,
-        state: false,
-        user: true
+        state: true,
+        user: true,
+        bonus: 0,
+        cash: 0
+
 
     );
 
-    FirebaseFirestore.instance.collection("users").doc(uId).set(model.Tomap()).then((value) {
+    FirebaseFirestore.instance.collection("users").doc(uId).set(
+  model.Tomap()
+    ).then((value) {
 
       emit(LoginSuccessState(uId));
     }).catchError((error) {
@@ -61,7 +66,10 @@ class LoginCubit extends Cubit<LoginState> {
       email=value.user!.email!;
       value.user!.phoneNumber!=null?phone:phone='';
       photo=value.user!.photoURL!;
-      createUser(image: photo, email: email, uId: value.user!.uid, name: name, phone: phone);
+FirebaseFirestore.instance.collection('users').doc(value.user!.uid).get().then((values) {
+  values.data()!=null?null:createUser(image: photo, email: email, uId: value.user!.uid, name: name, phone: phone);
+});
+     //
 
       emit(LoginSuccessState(value.user!.uid));
     });

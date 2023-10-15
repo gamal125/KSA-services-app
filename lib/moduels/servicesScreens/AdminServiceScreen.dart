@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:services/components/components.dart';
 import 'package:services/model/UserModel.dart';
 import 'package:services/model/servicemodel.dart';
+import '../../Applocalizition.dart';
 import '../../cubit/AppCubit.dart';
 import '../../cubit/states.dart';
 import '../chatsScreens/messageScreen.dart';
@@ -33,14 +34,18 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    list=AppCubit.get(context).serviceList;
 
-    AppCubit.get(context).getService();
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context,  state) {
+        if(state is GetServiceLoadingState){
+          list.clear();
+        }
         if(state is GetServiceSuccessState){
           list=AppCubit.get(context).serviceList;
         }
         if(state is SetServiceSuccessState){
+          AppCubit.get(context).getService();
           Navigator.pop(context);
         }
 
@@ -50,13 +55,13 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
 
             AppCubit.get(context).getmessages(R_uId: AppCubit
                 .get(context)
-                .onlineUsers[getRandomNumber(AppCubit.get(context).onlineUsers.length)].uId!);
+                .onlineUsers[getRandomNumber(AppCubit.get(context).onlineUsers.length)].uId!,);
           }
           else if(AppCubit.get(context).onlineUsers2.isNotEmpty){
-            AppCubit.get(context).getmessages(R_uId: AppCubit.get(context).onlineUsers2[getRandomNumber(AppCubit.get(context).onlineUsers2.length)].uId!);
+            AppCubit.get(context).getmessages(R_uId: AppCubit.get(context).onlineUsers2[getRandomNumber(AppCubit.get(context).onlineUsers2.length)].uId!, );
             showToast(text: 'كل الموظفون  الان برجاء الانتظار', state: ToastStates.error);
           }else{
-            AppCubit.get(context).getmessages(R_uId: AppCubit.get(context).onlineUsers3[getRandomNumber(AppCubit.get(context).onlineUsers3.length)].uId!);
+            AppCubit.get(context).getmessages(R_uId: AppCubit.get(context).onlineUsers3[getRandomNumber(AppCubit.get(context).onlineUsers3.length)].uId!, );
             showToast(text: 'كل الموظفون مشغلون الان برجاء المحاوله لاحقا', state: ToastStates.error);
 
           }
@@ -70,7 +75,7 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
             }
           });
 
-        model!=null? navigateTo(context, MessageScreen(R_userdata: model!,)):null;
+        model!=null? navigateTo(context, MessageScreen(R_userdata: model! ,)):null;
 
         }
       },
@@ -78,7 +83,7 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
         AppCubit cubit = AppCubit.get(context);
         return   Scaffold(
           key: scaffoldkey,
-          appBar: AppBar(title: const Center(child: Text("خدمات عامه و إلكترونية",style: TextStyle(color: Colors.green,fontWeight: FontWeight.bold),)),backgroundColor: Colors.white,),
+          appBar: AppBar(title:  Center(child: Text(AppLocalizations.of(context)!.translate('services'),style: TextStyle(color: Colors.green,fontWeight: FontWeight.bold),)),),
           body: SafeArea(
           child: SingleChildScrollView(
             child: ConditionalBuilder(
@@ -103,7 +108,7 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
               ), fallback: (BuildContext context) {return const Center(child: CircularProgressIndicator()); },
             ),
           )
-           
+
           ),
           // floatingActionButton: FloatingActionButton(onPressed: () {  },backgroundColor: Colors.yellow,child: const Icon(Icons.add,color: Colors.black,),),
           bottomNavigationBar: Container(
@@ -147,7 +152,7 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
 
                 } else {
                   scaffoldkey.currentState!.showBottomSheet((context) => Container(
-                    color: Colors.white,
+                    color: AppCubit.get(context).isDark?Colors.black:Colors.white,
                     padding: const EdgeInsets.all(20.0),
                     child: Form(
                       key: formkey,
@@ -159,12 +164,12 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                             keyboardType: TextInputType.text,
                             validate: (String? value) {
                               if (value!.isEmpty) {
-                                return    'من فضلك ادخل اسم الخدمه';
+                                return    AppLocalizations.of(context)!.translate('name1');
                               }
                               return null;
                             },
-                            label: 'اسم الخدمه',
-                            prefix: Icons.title,
+                            label:  AppLocalizations.of(context)!.translate('name2'),
+                            prefix: Icons.title, tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
                           ),
                           SizedBox(height: 10,),
                           defaultTextFormField(
@@ -172,12 +177,12 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                             keyboardType: TextInputType.number,
                             validate: (String? value) {
                               if (value!.isEmpty) {
-                                return    'من فضلك ادخل سعر الخدمه';
+                                return    AppLocalizations.of(context)!.translate('price');
                               }
                               return null;
                             },
-                            label: 'سعر الخدمه',
-                            prefix: Icons.title,
+                            label: AppLocalizations.of(context)!.translate('price2'),
+                            prefix: Icons.title, tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
                           ),
 
                         ],
@@ -268,14 +273,28 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                 ),
                 Container(decoration: BoxDecoration(color: Colors.white.withOpacity(0.8),borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(20),) ), width: double.infinity,
                     child: Center(
-                        child: Text(
-                          '${ model.price!} \$'
-                         ,    style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.05,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Dubai',
-
-                        ),)))
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Text(
+                              'ريال',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.03,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: 'Dubai',
+                              ),
+                            ),
+                            Text(
+                              '${model.price!}',
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.03,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Dubai',
+                              ),
+                            ),
+                          ],
+                        )
+                    ))
               ],
             ),
           ),
@@ -284,7 +303,43 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
               alignment: AlignmentDirectional.topStart,
               child: IconButton(
                   alignment: AlignmentDirectional.bottomCenter,
-                  onPressed: (){AppCubit.get(context).deleteService(name: model.name!,);}, icon:Icon( Icons.delete,color: Colors.red,)),
+                  onPressed: (){
+                    showDialog(
+                        context: context,
+                        builder: (context) =>
+                            AlertDialog(
+                              clipBehavior: Clip.antiAliasWithSaveLayer,
+                              elevation: 24.0,
+                              title:  Center(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.translate('delete'),
+                                    textAlign: TextAlign.right,
+                                  )),
+                              content:  Text(
+                                  AppLocalizations.of(context)!.translate('delete2'),
+                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.right,
+                              ),
+                              actions: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    TextButton(
+                                        onPressed: () {
+                                          AppCubit.get(context).deleteService(name: model.name!,);
+                                        },
+                                        child: Text( AppLocalizations.of(context)!.translate('yes'))),
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text( AppLocalizations.of(context)!.translate('no'))),
+                                  ],
+                                ),
+                              ],
+                            ));
+
+                    }, icon:Icon( Icons.delete,color: Colors.red,)),
             ),
           )
         ],

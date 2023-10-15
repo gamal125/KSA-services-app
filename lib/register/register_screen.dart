@@ -2,37 +2,32 @@ import 'dart:io';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:services/core/constance/constants.dart';
+import '../Applocalizition.dart';
 import '../components/components.dart';
 import '../cubit/AppCubit.dart';
 import '../layout/todo_layout.dart';
 import '../login/login_screen.dart';
-
 import '../shared/local/cache_helper.dart';
 import 'cubit/cubit.dart';
 import 'cubit/state.dart';
 
 
 class RegisterScreen extends StatelessWidget {
+
   final formKey = GlobalKey<FormState>();
-
   final emailController = TextEditingController();
-
   final taxController = TextEditingController();
-
   final passwordController = TextEditingController();
   final passwordController2 = TextEditingController();
-
   final nameController = TextEditingController();
-
   final phoneController = TextEditingController();
   late final String name ;
   late final String email ;
   late final String imageUrl ;
-
   late final File? profileImage;
   final pickerController = ImagePicker();
 
@@ -40,6 +35,7 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return BlocConsumer<RegisterCubit, RegisterState>(
        listener: (context, state) {
         if (state is RegisterSuccessState) {
@@ -58,162 +54,151 @@ class RegisterScreen extends StatelessWidget {
       },
       builder: (context, state) {
         return Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
 
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
 
+                     Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child:  Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(AppLocalizations.of(context)!.translate('create'),style: const TextStyle(color:KPrimaryColor,fontSize: 25,fontWeight: FontWeight.bold,fontFamily: 'Dubai',),),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10,),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 5,left: 5,bottom:10),
+                      child: Column(children: [
 
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                      child:  Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        defaultTextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validate: (String? value) {
+                            if (value!.isEmpty||!value.endsWith('.com')) {
+
+                              return AppLocalizations.of(context)!.translate('email2');
+                            }
+                            return null;
+                          },
+                          label: AppLocalizations.of(context)!.translate('email'),
+                          hint: AppLocalizations.of(context)!.translate('email'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        defaultTextFormField(
+                          controller: nameController,
+                          keyboardType: TextInputType.text,
+
+                          validate: (String? value) {
+                            if (value!.isEmpty) {
+                              return AppLocalizations.of(context)!.translate('username');
+                            }
+                            return null;
+                          },
+                          label: AppLocalizations.of(context)!.translate('username'),
+                          hint: AppLocalizations.of(context)!.translate('username'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        defaultTextFormField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          validate: (String? value) {
+                            if (value!.isEmpty) {
+                              return AppLocalizations.of(context)!.translate('phone2');
+                            }
+                            return null;
+                          },
+                          label: AppLocalizations.of(context)!.translate('phone'),
+                          hint: AppLocalizations.of(context)!.translate('phone'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        defaultTextFormField(
+                          controller: passwordController,
+                          keyboardType: TextInputType.text,
+
+                          validate: (String? value) {
+                            if (value!.isEmpty) {
+                              return AppLocalizations.of(context)!.translate('pass');
+                            }
+                            return null;
+                          },
+                          label: AppLocalizations.of(context)!.translate('pass'),
+                          hint: AppLocalizations.of(context)!.translate('pass'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
+                        ),
+
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        defaultTextFormField(
+                          controller: passwordController2,
+                          keyboardType: TextInputType.text,
+
+                          validate: (String? value) {
+                            if (value!.isEmpty) {
+                              return AppLocalizations.of(context)!.translate('pass2');
+                            }
+                            return null;
+                          },
+                          label: AppLocalizations.of(context)!.translate('pass2'),
+                          hint:AppLocalizations.of(context)!.translate('pass2'), tcolor: AppCubit.get(context).isDark?Colors.white:Colors.black,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        ConditionalBuilder(
+                          condition: state is! CreateUserInitialState,
+                          builder: (context) => Center(
+                            child: defaultMaterialButton(
+                               function: () {
+                                if (formKey.currentState!.validate()) {
+                                  if(passwordController.text!=passwordController2.text){
+                                    showToast(text:AppLocalizations.of(context)!.translate('pass3') , state: ToastStates.error);
+                                  }else{
+                                    if(phoneController.text.length<10){
+                                      showToast(text:AppLocalizations.of(context)!.translate('phone2') , state: ToastStates.error);
+                                    }else{
+                                      RegisterCubit.get(context).userRegister(
+                                        email: emailController.text,
+                                        password: passwordController.text,
+                                        name: nameController.text,
+                                        phone: phoneController.text,
+                                      );}}}},
+                              text: AppLocalizations.of(context)!.translate('Register'),
+                              radius: 20, color: KPrimaryColor,
+                            ),
+                          ),
+                          fallback: (context) =>
+                              Center(
+                                  child: LoadingAnimationWidget.inkDrop(
+                                    color: KPrimaryColor.withOpacity(.8),
+                                    size: screenSize.width / 12,)) ,),
+                        Row(
                           children: [
-                            Text('إنشاء حساب',style: TextStyle(color: Colors.black,fontSize: 25,fontWeight: FontWeight.bold,fontFamily: 'Dubai',),),
+                            Text(AppLocalizations.of(context)!.translate('have account'),style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 14,color: Colors.grey),),
+                            TextButton(onPressed: () { navigateTo(context, LoginScreen()); },
+                              child:Text(AppLocalizations.of(context)!.translate('login'),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 14,color: HexColor('#F88B94'),),),
+                            ),
                           ],
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5,left: 5,bottom:10),
-                        child: Column(children: [
 
-                          defaultTextFormField(
-                            controller: emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            validate: (String? value) {
-                              if (value!.isEmpty) {
-                                return 'البريد الالكتروني';
-                              }
-                              return null;
-                            },
-                            label: 'البريد الالكتروني',
-                            hint: 'البريد الالكتروني',
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          defaultTextFormField(
-                            controller: nameController,
-                            keyboardType: TextInputType.text,
-
-                            validate: (String? value) {
-                              if (value!.isEmpty) {
-                                return 'الاسم الكامل';
-                              }
-                              return null;
-                            },
-                            label: 'الاسم الكامل',
-                            hint: 'الاسم الكامل',
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          defaultTextFormField(
-                            controller: phoneController,
-                            keyboardType: TextInputType.phone,
-                            validate: (String? value) {
-                              if (value!.isEmpty) {
-                                return 'رقم الهاتف';
-                              }
-                              return null;
-                            },
-                            label: 'رقم الهاتف',
-                            hint: 'رقم الهاتف',
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          defaultTextFormField(
-                            controller: passwordController,
-                            keyboardType: TextInputType.text,
-
-                            validate: (String? value) {
-                              if (value!.isEmpty) {
-                                return 'كلمة المرور';
-                              }
-                              return null;
-                            },
-                            label: 'كلمة المرور',
-                            hint: 'كلمة المرور',
-                          ),
-
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          defaultTextFormField(
-                            controller: passwordController2,
-                            keyboardType: TextInputType.text,
-
-                            validate: (String? value) {
-                              if (value!.isEmpty) {
-                                return 'تاكيد كلمة المرور';
-                              }
-                              return null;
-                            },
-                            label: 'تاكيد كلمة المرور',
-                            hint: 'تاكيد كلمة المرور',
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          ConditionalBuilder(
-                            condition: state is! CreateUserInitialState,
-                            builder: (context) => Center(
-                              child: defaultMaterialButton(
-                                 function: () {
-                                  if (formKey.currentState!.validate()) {
-                                    if(passwordController.text!=passwordController2.text){
-                                      showToast(text:'كلمة المرور غير متطابقه' , state: ToastStates.error);
-                                    }else{
-                                      if(phoneController.text.length<10){
-                                        showToast(text:'رقم الهاتف غير صحيح' , state: ToastStates.error);
-                                      }else{
-                                        RegisterCubit.get(context).userRegister(
-                                          email: emailController.text,
-                                          password: passwordController.text,
-                                          name: nameController.text,
-                                          phone: phoneController.text,
-                                        );
-                                      }
-
-                                    }
-
-                                  }
-                                 },
-                                text: 'تسجيل دخول',
-                                radius: 20, color: HexColor('#464646'),
-                              ),
-                            ),
-                            fallback: (context) =>
-                                const Center(child: CircularProgressIndicator()),
-                          ),
-
-                          Row(mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-
-                              TextButton(onPressed: () { navigateTo(context, LoginScreen()); },
-                                child:Text(' تسجيل دخول',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 14,color: HexColor('#F88B94'),),),
-                              ),
-                              const Text('هل تمتلك حساب مسبقا؟',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 14,color: Colors.grey),),
-                            ],
-                          ),
-
-                          IconButton(onPressed: () {
-                            RegisterCubit.get(context).signInWithGoogle();
-                          },
-                            icon:SvgPicture.asset('assets/icon/google.svg',height: 48,width: 48,),
-                          ),
-                        ]),
-                      ),
+                      ]),
+                    ),
 
 
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),

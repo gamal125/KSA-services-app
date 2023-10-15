@@ -77,7 +77,10 @@ createUser(
         male: true,
         available: true,
         state: false,
-        user: true
+        user: true,
+        bonus: 0,
+        cash: 0
+
 
     );
 
@@ -104,7 +107,7 @@ createUser(
         image: image,
         male: true,
         available: true,
-        state: false, user: true
+        state: false, user: true, bonus: 0, cash: 0
 
     );
 

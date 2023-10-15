@@ -1,24 +1,22 @@
+import 'dart:developer';
 import 'dart:io';
-
-import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:services/components/components.dart';
 import 'package:services/cubit/states.dart';
+import 'package:services/model/priceModel.dart';
 import 'package:services/model/servicemodel.dart';
 import 'package:services/moduels/chatsScreens/ChatsScreen.dart';
 import 'package:services/moduels/servicesScreens/ServiceScreen.dart';
-
 import '../core/constance/Apicontest.dart';
 import '../core/dio_helper.dart';
 import '../model/UserModel.dart';
 import '../model/message_model.dart';
-import '../moduels/chatsScreens/AdminChatsScreen.dart';
+import '../moduels/chatsScreens/Adminchats/AdminChatsScreen.dart';
 import '../moduels/payment/models/authentication_request_model.dart';
 import '../moduels/payment/models/order_registration_model.dart';
 import '../moduels/payment/models/payment_reqeust_model.dart';
@@ -32,9 +30,14 @@ class AppCubit extends Cubit<AppStates> {
   static AppCubit get(context) => BlocProvider.of(context);
   bool isBottomSheetShown = false;
   IconData fabIcon = Icons.edit;
-
+   bool isDark=true;
+   void changemode(){
+     isDark=!isDark;
+     emit(AppchangeState());
+   }
   void changeBottomSheetState({
     required bool isShow,
+
     required IconData icon,
   }) {
     isBottomSheetShown = isShow;
@@ -44,13 +47,13 @@ class AppCubit extends Cubit<AppStates> {
   int currentIndex = 0;
   List<Widget> screens = [
      ServicesScreen(),
-    ChatsScreen(),
-    ProfileScreen(),
+    const ChatsScreen(),
+    const ProfileScreen(),
   ];
   List<Widget> Adminscreens = [
-    AdminServicesScreen(),
-    AdminChatsScreen(),
-    AdminProfileScreen(),
+    const AdminServicesScreen(),
+    const AdminChatsScreen(),
+    const AdminProfileScreen(),
   ];
   List<String> titles = [
     'Services',
@@ -78,17 +81,22 @@ class AppCubit extends Cubit<AppStates> {
     if (currentIndex==0){
 
       getavailablty();
+      getService();
     }
     if (currentIndex==1){
-      if(CacheHelper.getData(key: 'uId')!='8DxVS7sTApPRE3oD1SZvLEjHXNg1'){
-      getavailablty();
-
-      getUsersIdChats();}else{
-
+      String x=CacheHelper.getData(key: 'uId');
+      if(x!='8DxVS7sTApPRE3oD1SZvLEjHXNg1'){
+        getavailablty();
+       getUsersIdChats();
       }
+      else{
+        getusersid();
+      }
+
 
     }
     if (currentIndex==2){
+      getavailablty();
       getUser(CacheHelper.getData(key: 'uId'));
     }
 
@@ -107,7 +115,7 @@ class AppCubit extends Cubit<AppStates> {
   List<UserModel> onlineUsers2=[];
   List<UserModel> onlineUsers3=[];
 
-  Future<void> getusers({required bool male}) async{
+  Future<void> getusers({required bool male,}) async{
 
     AllUsers.clear();
     onlineUsers.clear();
@@ -119,7 +127,7 @@ class AppCubit extends Cubit<AppStates> {
         AllUsers.add(UserModel.fromjson(element.data()));
 
       }
-      AllUsers.forEach((element) {
+      for (var element in AllUsers) {
         if(element.state&&element.uId!=ud&&!element.user) {
 
           if (element.male == male) {
@@ -133,9 +141,10 @@ class AppCubit extends Cubit<AppStates> {
             onlineUsers3.add(element);
           }
 
+
         }
 
-      });
+      }
 
     });
     emit(GetAllUsersSuccessStates());
@@ -151,32 +160,121 @@ class AppCubit extends Cubit<AppStates> {
   }
   });
   }
+  List<String> idlist=[];
+  List<String> idlisthasarchats=[];
+  void getusersid(){
+
+    idlist.clear();
+    FirebaseFirestore.instance.collection('users').get().then((value)  async {
+      for (var element in value.docs) {
+        idlist.add(element.id);
+      }
+      await getusersidarchats();
+
+    });
+  }
+  Future<void> getusersidarchats() async {
+    idlisthasarchats.clear();
+    for (var element in idlist) {
+      FirebaseFirestore.instance.collection('users').doc(element).collection('archats').get().then((value) {
+        if(value.docs.isNotEmpty){
+          idlisthasarchats.add(element);
+        }
+      });
+    }
+    await Future.delayed(const Duration(milliseconds: 2000));
+    emit(GetUserHasArchatsLoadingState());
+
+  }
+  List<UserModel> userhasarchats=[];
+  Future<void> getUserHasArchats() async {
+    userhasarchats.clear();
+    for (var element in idlisthasarchats) {
+      FirebaseFirestore.instance.collection('users').doc(element).get().then((value) {
+        userhasarchats.add(UserModel.fromjson(value.data()!));
+      });
+    }
+    await Future.delayed(const Duration(milliseconds: 1000));
+    emit(GetUserHasArchatsSuccessState());
+  }
+  List<String>customerSeviceid=[];
+  void getcustomerSeviceid({required String id}){
+    customerSeviceid.clear();
+    FirebaseFirestore.instance.collection('users').doc(id).collection('archats').get().then((value) {
+      for (var element in value.docs) {customerSeviceid.add(element.id);}
+
+      getcustomerSevices();
+    });
+  }
+  List<UserModel> customerSevice=[];
+  Future<void> getcustomerSevices() async {
+    customerSevice.clear();
+    for (var element in customerSeviceid) {
+   h(element);
+    }
+    await Future.delayed(const Duration(milliseconds: 2000));
+    emit(Done());
+  }
+  void h(String element){
+     FirebaseFirestore.instance.collection('users').doc(element).get().then((value) {
+      customerSevice.add(UserModel.fromjson(value.data()!));
+    });
+  }
   void getUser(uid) {
     emit(GetUsersInitStates());
-    FirebaseFirestore.instance.collection('users').doc(uid.toString())
+
+    uid!=''&&uid!=null? FirebaseFirestore.instance.collection('users').doc(uid.toString())
         .get()
         .then((value) {
       userdata = UserModel.fromjson(value.data()!);
       getavailablty();
       emit(GetOneUsersSuccessStates());
+    }):null;
+  }
+  void setBonus({required int cash,required String uId,required double bonus}){
+    try{
+      emit(SetUserBonusLoadingStates());
+      int integerPart = bonus.toInt(); // Obtaining the integer part
+      double fractionalPart = bonus - integerPart;
+      fractionalPart=double.parse(fractionalPart.toStringAsFixed(1));
+      FirebaseFirestore.instance.collection('users').doc(uId).update({"bonus":(fractionalPart*1000).toInt()});
+      int x=integerPart+cash;
+      FirebaseFirestore.instance.collection('users').doc(uId).update({"cash":x}).then((value) {
+      emit(SetUserBonusSuccessStates((fractionalPart*1000).toInt(),x));
     });
+
+    }catch(e){
+      log(e.toString());
+    }
+  }
+  void getWalletUser(uid) {
+
+    emit(GetUserswalletStates());
+
+    uid!=''&&uid!=null? FirebaseFirestore.instance.collection('users').doc(uid.toString())
+        .get()
+        .then((value) {
+      userdata = UserModel.fromjson(value.data()!);
+      getavailablty();
+      emit(GetUserWalletSuccessStates(userdata!));
+    }):null;
   }
   void updateProfile({
     required String image,
     required String name,
     required String phone,
-    required String email,}) {
-    UserModel model = UserModel(
-        image: image,
-        name: name,
-        uId: ud,
-        phone: phone,
-        email: email,
-        available: true,
-        male: true, state: false, user: true
-    );
+    required String email,
+    required bool user,
+  }) {
+
     emit(ImageintStates());
-    FirebaseFirestore.instance.collection('users').doc(ud).update(model.Tomap()).then((value) {
+    FirebaseFirestore.instance.collection('users').doc(ud).update({
+      'name':name,
+      'phone':phone,
+      'email':email,
+      'image':image,
+
+    }).then((value) {
       emit(UpdateProductSuccessStates());
     }).catchError((error) {
       emit(UpdateProductErrorStates(error.toString()));
@@ -197,7 +295,6 @@ class AppCubit extends Cubit<AppStates> {
     then((value) {
       value.ref.getDownloadURL().then((value) {
         ImageUrl2 = value;
-        print(ImageUrl2);
         createUser(
             image: ImageUrl2,
             name: name,
@@ -222,17 +319,15 @@ class AppCubit extends Cubit<AppStates> {
     required String name,
     required String phone,
   }) {
-    UserModel model=UserModel(
-        email: email,
-        name: name,
-        phone: phone,
-        uId: uId,
-        image: image,
-        available: true, male: true, state: false, user: true
 
-    );
 
-    FirebaseFirestore.instance.collection("users").doc(uId).set(model.Tomap()).then((value) {
+    FirebaseFirestore.instance.collection("users").doc(uId).set({
+      'name':name,
+      'phone':phone,
+      'email':email,
+      'image':image,
+
+    }).then((value) {
 
       emit(CreateUserSuccessState());
     }).catchError((error) {
@@ -269,9 +364,10 @@ class AppCubit extends Cubit<AppStates> {
   }
   ////////////////////upload workshop/////////////
   String ImageUrl = '';
-  String ud =  CacheHelper.getData(key: 'uId');
+  String ud =  CacheHelper.getData(key: 'uId')??'';
 
   List<messageModel> messages=[];
+  List<messageModel> commessages=[];
   void getmessages(
       {
 
@@ -281,12 +377,50 @@ class AppCubit extends Cubit<AppStates> {
     FirebaseFirestore.instance.collection('users').doc(ud).collection('chats').doc(R_uId).collection('messages').orderBy('date').
     snapshots().listen((event) {
       messages=[];
-      event.docs.forEach((element) {
+      for (var element in event.docs) {
         messages.add(messageModel.fromjson(element.data()));
-      });
-      emit(GetMessageSuccessState(R_uId));
+      }
+      emit(GetMessageSuccessState(R_uId,));
 
     });
+
+  }
+
+  void getcomplaintmessages(
+      {
+
+        required String R_uId,
+      }
+      ){
+    FirebaseFirestore.instance.collection('users').doc(R_uId).collection('complaint').doc(ud).collection('messages').orderBy('date').
+    snapshots().listen((event) {
+      commessages=[];
+      for (var element in event.docs) {
+        commessages.add(messageModel.fromjson(element.data()));
+      }
+      emit(GetComplaintMessageSuccessState(R_uId,));
+
+    });
+
+  }
+  void getarmessages(
+      {
+        required String R_uId,
+      }
+      ){
+    FirebaseFirestore.instance.collection('users').doc(R_uId).collection('archats').get().then((value) {
+     String x= value.docs.first.id;
+     FirebaseFirestore.instance.collection('users').doc(R_uId).collection('archats').doc(x).collection('messages').orderBy('date').
+     snapshots().listen((event) {
+       messages=[];
+       for (var element in event.docs) {
+         messages.add(messageModel.fromjson(element.data()));
+       }
+       emit(GetMessageSuccessState(R_uId,));
+
+     });
+    });
+
 
   }
   void setService({required String name,required String price}){
@@ -302,13 +436,13 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
   List<ServiceModel> serviceList=[];
-  void getService(){
+void getService() async {
     emit(GetServiceLoadingState());
     serviceList.clear();
-    FirebaseFirestore.instance.collection('services').get().then((value) {
-      value.docs.forEach((element) {
+   await FirebaseFirestore.instance.collection('services').get().then((value) {
+      for (var element in value.docs) {
         serviceList.add(ServiceModel.fromjson(element.data()));
-      });
+      }
       emit(GetServiceSuccessState());
     });
   }
@@ -320,10 +454,11 @@ emit(DeleteServiceSuccessState());
 
     });
   }
-  void sendmessage(
+  void sendstartmessag(
       {required String text,
         required String R_uId,
-        required String datetime
+        required String datetime,
+        required String price,
       }
       ){
     messageModel model=messageModel(
@@ -333,25 +468,138 @@ emit(DeleteServiceSuccessState());
       S_uId: userdata!.uId,
     );
 
-    FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection('chats').doc(R_uId).collection('messages').add(
-        model.Tomap()).then((value) {
-      FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection('chats').doc(R_uId).set({'id':R_uId});
-      emit(SendMessageSuccessState());
-    }).catchError((error) {
-      emit(SendMessageErrorState(error.toString()));
-    });
 
-    FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats').doc(userdata!.uId).collection('messages').add(
-        model.Tomap()).then((value) {
-      FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats').doc(userdata!.uId).set({'id':userdata!.uId});
-      emit(SendMessageSuccessState());
-    }).catchError((error) {
-      emit(SendMessageErrorState(error.toString()));
+     FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection(
+            'chats').doc(R_uId).set({'price': price});
+
+    FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection(
+        'chats').doc(R_uId).collection('messages').doc('start').set(
+        model.Tomap());
+
+    FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats')
+        .doc(userdata!.uId).collection('messages').doc('start').set(
+        model.Tomap());
+
+         FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats').doc(userdata!.uId).set({'price': price});
+
+
+
+
+
+  }
+  void sendmessage(
+      {required String text,
+        required String R_uId,
+        required String datetime,
+        required String price,
+      }
+      ){
+    messageModel model=messageModel(
+      date: datetime,
+      R_uId: R_uId,
+      text: text,
+      S_uId: userdata!.uId,
+    );
+if(text!='###payment###') {
+  FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection(
+      'chats').doc(R_uId).collection('messages').add(
+      model.Tomap()).then((value) {
+    price!=''? FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection(
+        'chats').doc(R_uId).set({'price': price}):null;
+    emit(SendMessageSuccessState());
+  }).catchError((error) {
+    emit(SendMessageErrorState(error.toString()));
+  });
+
+}else{
+  FirebaseFirestore.instance.collection("users").doc(model.S_uId!).collection(
+      'chats').doc(R_uId).collection('messages').doc('payment').set(
+      model.Tomap()).then((value) {
+    emit(SendMessageSuccessState());
+  }).catchError((error) {
+    emit(SendMessageErrorState(error.toString()));
+  });
+}
+if(text!='###payment###') {
+  FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats')
+      .doc(userdata!.uId).collection('messages').add(
+      model.Tomap())
+      .then((value) {
+    emit(SendMessageSuccessState());
+  }).catchError((error) {
+    emit(SendMessageErrorState(error.toString()));
+  });
+}else{
+  FirebaseFirestore.instance.collection("users").doc(R_uId).collection('chats')
+      .doc(userdata!.uId).collection('messages').doc('payment').set(
+      model.Tomap())
+      .then((value) {
+    emit(SendMessageSuccessState());
+  }).catchError((error) {
+    emit(SendMessageErrorState(error.toString()));
+  });
+}
+  }
+  void sendcomplaintmessage(
+      {required String text,
+        required String R_uId,
+        required String datetime,
+        required String price,
+      }
+      ){
+    messageModel model=messageModel(
+      date: datetime,
+      R_uId: R_uId,
+      text: text,
+      S_uId: userdata!.uId,
+    );
+
+      FirebaseFirestore.instance.collection('users').doc(ud).collection('complaint').doc(R_uId).collection('messages').add(
+          model.Tomap()).then((value) {
+        FirebaseFirestore.instance.collection('users').doc(ud).collection('complaint').doc(R_uId).set({'id':R_uId});
+        emit(SendMessageSuccessState());
+      }).catchError((error) {
+        emit(SendMessageErrorState(error.toString()));
+      });
+
+
+
+
+      FirebaseFirestore.instance.collection('users').doc(R_uId).collection('complaint').doc(ud).collection('messages').add(
+          model.Tomap())
+          .then((value) {
+        FirebaseFirestore.instance.collection('users').doc(R_uId).collection('complaint').doc(ud).set({'id':ud});
+        emit(SendMessageSuccessState());
+      }).catchError((error) {
+        emit(SendMessageErrorState(error.toString()));
+      });
+
+
+  }
+  List<messageModel> ComplaintMessage=[];
+  void getcomplaintMessage({required String R_uId}){
+    FirebaseFirestore.instance.collection('users').doc(ud).collection('complaint').doc(R_uId).collection('messages').orderBy('date').
+    snapshots().listen((event) {
+      ComplaintMessage=[];
+      for (var element in event.docs) {
+        ComplaintMessage.add(messageModel.fromjson(element.data()));
+      }
+      emit(GetComplaintMessageSuccessState(R_uId));
+
     });
   }
+  PriceModel price=PriceModel(price: '');
+ void getprice({required String R_uId}){
+    FirebaseFirestore.instance.collection("users").doc(R_uId).collection("chats").doc(userdata!.uId).get().then((value) {
+      price=PriceModel.fromjson(value.data()!);
+ emit(GetPriceMessageSuccessState(price.price!));
+    });
+
+  }
+
   void deleteAll({required List<messageModel> allmessages,required String id}){
 
-    allmessages.forEach((element) {deletemessage(m: element, id: id); });
+    for (var element in allmessages) {deletemessage(m: element, id: id); }
   }
   void deletemessage (
       {required messageModel m,
@@ -429,34 +677,64 @@ emit(DeleteServiceSuccessState());
   Future<void> getUsersIdChats()async{
     ids.clear();
     usersHasChats.clear();
-    print(ud);
+
    await FirebaseFirestore.instance.collection('users').doc(ud).collection('chats').get().then((value) {
-     print(value.docs.length);
-      value.docs.forEach((doc) {
+
+      for (var doc in value.docs) {
 
         ids.add(doc.id);
-      });
+      }
 
       emit(GetIdUsersChatsSuccessState());
     });
 
   }
+
+List<String> ComplaintIds=[];
+  List<UserModel> UsersComplaint=[];
+Future<void> getComplaintUsersid() async {
+  emit(GetComplaintUsersLoadingState());
+  ComplaintIds.clear();
+  UsersComplaint.clear();
+  await  FirebaseFirestore.instance.collection('users').doc(ud).collection('complaint').get().then((value) {
+      for (var element in value.docs) {
+        ComplaintIds.add(element.id.toString());
+
+      }
+      emit(GetComplaintUsersSuccessState());
+    });
+
+
+}
+Future<void> getComplaintUsers() async {
+  for (var element in ComplaintIds) {
+    getComplaintUserdata(id:element);
+  }
+  await Future.delayed(const Duration(milliseconds: 2000));
+  emit(GetComplaintUsersSuccessState2());
+}
+void getComplaintUserdata({required String id}){
+  FirebaseFirestore.instance.collection('users').doc(id).get().then((value) {
+    UsersComplaint.add(UserModel.fromjson(value.data()!));
+
+  });
+}
   List<UserModel> usersHasChats=[];
   void getAllUsersHaschats()async{
 
     usersHasChats.clear();
     ids.toSet().toList();
     ids.forEach((element) {
+
       getoneuser(id: element);
     });
-    await Future.delayed(Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2000));
     usersHasChats.toSet().toList();
     emit(GetUsersHasChatsSuccessState());
   }
     List<UserModel> users=[];
   Future<void> getoneuser({required String id})async{
     await FirebaseFirestore.instance.collection('users').doc(id).get().then((value) {
-print(value.data()!);
       usersHasChats.add(UserModel.fromjson(value.data()!));
     });
 
@@ -466,17 +744,21 @@ print(value.data()!);
     String id=CacheHelper.getData(key: 'uId');
     emit(GetAllUsersLoadingState());
     await FirebaseFirestore.instance.collection('users').get().then((value) {
-        value.docs.forEach((element) {
+        for (var element in value.docs) {
           if(element.id!=id){
           users.add(UserModel.fromjson(element.data()));
-          } });
+          } }
         emit(GetAllUsersSuccessState());
     });
 
   }
 
 
+void deletepayment(String id){
+FirebaseFirestore.instance.collection('users').doc(ud).collection('chats').doc(id).collection('messages').doc('payment').delete();
+FirebaseFirestore.instance.collection('users').doc(id).collection('chats').doc(ud).collection('messages').doc('payment').delete();
 
+  }
 
 
 

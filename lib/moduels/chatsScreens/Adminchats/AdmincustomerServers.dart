@@ -1,23 +1,27 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:services/layout/todo_layout.dart';
 import 'package:services/model/UserModel.dart';
-import 'package:services/moduels/chatsScreens/messageScreen.dart';
-import '../../Applocalizition.dart';
-import '../../components/components.dart';
-import '../../core/constance/constants.dart';
-import '../../cubit/AppCubit.dart';
-import '../../cubit/states.dart';
 
-class ChatsScreen extends StatefulWidget {
-  const ChatsScreen({super.key});
+import '../../../Applocalizition.dart';
+import '../../../components/components.dart';
+import '../../../core/constance/constants.dart';
+import '../../../cubit/AppCubit.dart';
+import '../../../cubit/states.dart';
+import 'AdminmessageScreen.dart';
+
+class AdminCustomerServicesScreen extends StatefulWidget {
+  const AdminCustomerServicesScreen({super.key});
 
   @override
-  State<ChatsScreen> createState() => _ChatsScreenState();
+  State<AdminCustomerServicesScreen> createState() => _AdminCustomerServicesScreenState();
 }
 
-class _ChatsScreenState extends State<ChatsScreen> {
+class _AdminCustomerServicesScreenState extends State<AdminCustomerServicesScreen> {
   List<UserModel> model=[];
 
   @override
@@ -30,28 +34,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    model=AppCubit.get(context).usersHasChats;
+model=AppCubit.get(context).customerSevice;
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context,  state) {
 
-
-        if(state is GetIdUsersChatsSuccessState){
-
-
-            AppCubit.get(context).getAllUsersHaschats();
-
-
-        }
-        if(state is GetUsersHasChatsSuccessState){
-
-
-          model=AppCubit.get(context).usersHasChats;
-
-
-        }
-      },
+        },
       builder: (context, state) {
-        AppCubit cubit = AppCubit.get(context);
         return   Scaffold(
           appBar: AppBar(
             title: Center(
@@ -60,59 +48,35 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   style:
                   const TextStyle(color: KPrimaryColor, fontWeight: FontWeight.bold),
                 )),
-
+            leading: IconButton(onPressed: (){AppCubit.get(context).changeIndex(1); navigateAndFinish(context, Home_Layout());},icon:  Icon(CupertinoIcons.back,color: AppCubit.get(context).isDark?Colors.white:Colors.black),),
+            elevation: 0,
           ),
           body: ConditionalBuilder(
-            condition: state is GetUsersHasChatsSuccessState||state is GetPriceMessageSuccessState,
+            condition: true,
             builder: (context) {
               return model.isNotEmpty?
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const BouncingScrollPhysics(),
-                itemBuilder: (context, index) => Column(
-                  children: [
-                    catList(
+              Column(
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemBuilder: (context, index) => catList(
                         model[index], context),
-                    myDivider()
-                  ],
-                ),
-                separatorBuilder: (context, index) => myDivider(),
-                itemCount: model.length,
+                    separatorBuilder: (context, index) => myDivider(),
+                    itemCount: model.length,
 
-              ):Center(child: Text(AppLocalizations.of(context)!.translate('No items')),);
+                  ),
+                myDivider()
+                ],
+
+              ):Center(child: Text(AppLocalizations.of(context)!.translate('No items'),style: TextStyle(color: AppCubit.get(context).isDark?Colors.white:Colors.black,),),);
             }, fallback: ( context) => Center(
               child: LoadingAnimationWidget.inkDrop(
                 color: KPrimaryColor.withOpacity(.8),
                 size: screenSize.width / 12,
               )) ,
           ),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(50), topRight: Radius.circular(50)
-              )
-              , boxShadow: [
-              BoxShadow(
-                color: Colors.green.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 7,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            ),
-            child: BottomNavigationBar(
-              selectedIconTheme: const IconThemeData(color:KPrimaryColor,),
-              selectedItemColor: KPrimaryColor,
 
-              items: cubit.BottomItems,
-              currentIndex: cubit.currentIndex,
-              onTap: (index) {
-                cubit.changeIndex(index);
-              },
-
-
-            ),
-          ),
         );
 
 
@@ -122,9 +86,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
   Widget catList(UserModel model, context) => InkWell(
 
-    onTap: () {
-      AppCubit.get(context).getmessages(R_uId: model.uId!, );
-      navigateTo(context, MessageScreen(R_userdata: model,));
+    onTap: () async {
+      AppCubit.get(context).getarmessages(R_uId: model.uId!);
+      navigateTo(context, AdminMessageScreen(rUserdata: model, name: model.name!,));
+
+
+
+
+
 
 
     },
@@ -161,7 +130,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   width: 50.0,
                   height: 50.0,
                   decoration: BoxDecoration(
-                   shape: BoxShape.circle,
+                    shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                     image:  model.image!='' ?DecorationImage(
                       image:   NetworkImage(
